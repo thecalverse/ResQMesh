@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ResQMesh - Disaster Incident Command Tactical Base Station</title>
+    <!-- Leaflet Vector Map CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Google Fonts for High-Tech Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,700;0,800;1,400&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #07090E;
+            --panel-bg: #0F1722;
+            --panel-bg-glass: rgba(15, 23, 34, 0.85);
+            --card-border: #1E293B;
+            --accent-red: #FF2A6D;
+            --accent-red-glow: rgba(255, 42, 109, 0.3);
+            --accent-amber: #FFB703;
+            --accent-green: #05D540;
+            --accent-green-glow: rgba(5, 213, 64, 0.25);
+            --accent-cyan: #00F0FF;
+            --accent-cyan-glow: rgba(0, 240, 255, 0.25);
+            --text-light: #F8FAFC;
+            --text-muted: #64748B;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background-color: var(--bg-dark); color: var(--text-light); padding: 16px; font-size: 12px; background-image: radial-gradient(circle at 50% 0%, #111D2E 0%, #07090E 70%); min-height: 100vh; }
+
+        header {
+            display: flex; justify-content: space-between; align-items: center;
+            background: var(--panel-bg-glass); backdrop-filter: blur(12px);
+            padding: 16px 24px; border-radius: 16px; margin-bottom: 16px;
+            border-left: 6px solid var(--accent-red); border: 1px solid var(--card-border);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        .header-title-box { display: flex; align-items: center; gap: 12px; }
+        .logo-icon { width: 38px; height: 38px; background: linear-gradient(135deg, var(--accent-red), #990033); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; box-shadow: 0 0 15px var(--accent-red-glow); }
+        h1 { font-size: 20px; color: #FFF; font-weight: 800; letter-spacing: 0.5px; font-family: 'JetBrains Mono', monospace; }
+        .subtitle { font-size: 11px; color: var(--accent-cyan); font-family: 'JetBrains Mono', monospace; margin-top: 2px; }
+
+        .header-actions { display: flex; align-items: center; gap: 10px; }
+        .badge { background: rgba(5, 213, 64, 0.12); color: var(--accent-green); padding: 6px 14px; border-radius: 20px; font-weight: 700; font-size: 11px; border: 1px solid var(--accent-green); font-family: 'JetBrains Mono', monospace; }
+        .badge-cyan { background: rgba(0, 240, 255, 0.12); color: var(--accent-cyan); padding: 6px 14px; border-radius: 20px; font-weight: 700; font-size: 11px; border: 1px solid var(--accent-cyan); font-family: 'JetBrains Mono', monospace; }
+        .badge-sos { background: rgba(255, 42, 109, 0.2); color: var(--accent-red); padding: 6px 14px; border-radius: 20px; font-weight: 800; font-size: 11px; border: 1px solid var(--accent-red); animation: pulse 1.5s infinite; font-family: 'JetBrains Mono', monospace; }
+
+        @keyframes pulse {
+            0% { opacity: 1.0; box-shadow: 0 0 0 0 var(--accent-red-glow); }
+            50% { opacity: 0.5; box-shadow: 0 0 20px 5px var(--accent-red-glow); }
+            100% { opacity: 1.0; box-shadow: 0 0 0 0 var(--accent-red-glow); }
+        }
+
+        .btn { padding: 9px 16px; border-radius: 10px; font-weight: 700; font-size: 11px; cursor: pointer; border: none; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s ease; font-family: 'Plus Jakarta Sans', sans-serif; }
+        .btn-cyan { background: var(--accent-cyan); color: #000; box-shadow: 0 0 15px var(--accent-cyan-glow); }
+        .btn-cyan:hover { transform: translateY(-2px); box-shadow: 0 0 25px var(--accent-cyan); }
+        .btn-red { background: var(--accent-red); color: #FFF; box-shadow: 0 0 15px var(--accent-red-glow); }
+        .btn-red:hover { transform: translateY(-2px); box-shadow: 0 0 25px var(--accent-red); }
+        .btn-outline { background: transparent; color: var(--text-light); border: 1px solid var(--card-border); }
+        .btn-outline:hover { background: rgba(255, 255, 255, 0.08); border-color: var(--accent-cyan); }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 16px; }
+        .stat-card { background: var(--panel-bg-glass); backdrop-filter: blur(12px); padding: 16px 20px; border-radius: 14px; border: 1px solid var(--card-border); position: relative; overflow: hidden; }
+        .stat-card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--card-border); }
+        .stat-card.cyan::before { background: var(--accent-cyan); }
+        .stat-card.green::before { background: var(--accent-green); }
+        .stat-card.red::before { background: var(--accent-red); }
+        .stat-card.amber::before { background: var(--accent-amber); }
+
+        .stat-label { font-size: 10px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-family: 'JetBrains Mono', monospace; }
+        .stat-val { font-size: 26px; font-weight: 800; color: var(--text-light); margin-top: 6px; font-family: 'JetBrains Mono', monospace; }
+
+        /* SOS Sender Identification Bar */
+        .sos-alert-bar {
+            background: rgba(255, 42, 109, 0.08); border: 2px solid var(--accent-red); border-radius: 16px;
+            padding: 16px 20px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 0 30px var(--accent-red-glow);
+        }
+        .sos-alert-title { font-size: 14px; font-weight: 800; color: var(--accent-red); letter-spacing: 0.5px; font-family: 'JetBrains Mono', monospace; }
+        .sos-sender-list { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 8px; }
+        .sos-sender-card {
+            background: var(--panel-bg); border: 1px solid var(--accent-red); border-radius: 10px;
+            padding: 8px 14px; font-family: 'JetBrains Mono', monospace; font-size: 11px; display: flex; align-items: center; gap: 8px;
+        }
+
+        .main-grid { display: grid; grid-template-columns: 1.5fr 1.5fr; gap: 16px; margin-bottom: 16px; }
+
+        #map { height: 440px; border-radius: 16px; border: 1px solid var(--card-border); z-index: 1; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4); }
+
+        .panel { background: var(--panel-bg-glass); backdrop-filter: blur(12px); padding: 18px; border-radius: 16px; border: 1px solid var(--card-border); height: 440px; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4); }
+        .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+        .panel h2 { font-size: 13px; font-weight: 800; color: var(--accent-cyan); letter-spacing: 0.5px; font-family: 'JetBrains Mono', monospace; }
+
+        .table-container { flex-grow: 1; overflow-y: auto; border-radius: 10px; border: 1px solid var(--card-border); }
+        table { width: 100%; border-collapse: collapse; font-size: 11px; font-family: 'JetBrains Mono', monospace; }
+        th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--card-border); }
+        th { background: #0B111A; color: var(--accent-amber); position: sticky; top: 0; font-weight: 800; font-size: 10px; letter-spacing: 0.5px; }
+
+        .prio-P1 { color: var(--accent-red); font-weight: 800; }
+        .prio-P2 { color: var(--accent-amber); font-weight: 700; }
+        .prio-P3 { color: var(--accent-green); }
+
+        .route-chip { background: rgba(0, 240, 255, 0.1); color: var(--accent-cyan); border: 1px solid var(--accent-cyan); padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; }
+
+        .dispatch-box { background: var(--panel-bg-glass); backdrop-filter: blur(12px); padding: 20px; border-radius: 16px; border: 1px solid var(--card-border); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4); }
+        .dispatch-box h2 { color: var(--accent-red); font-size: 14px; font-weight: 800; margin-bottom: 14px; font-family: 'JetBrains Mono', monospace; }
+
+        .quick-presets { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+        .preset-btn { background: rgba(255, 255, 255, 0.05); color: var(--text-light); border: 1px solid var(--card-border); padding: 6px 12px; border-radius: 8px; font-size: 10px; font-weight: 700; cursor: pointer; transition: 0.2s; }
+        .preset-btn:hover { background: rgba(255, 42, 109, 0.2); border-color: var(--accent-red); color: #FFF; }
+
+        .dispatch-inputs { display: flex; gap: 10px; }
+        .dispatch-inputs input {
+            padding: 12px 16px; border-radius: 10px; border: 1px solid var(--card-border); background: var(--bg-dark); color: #FFF; font-size: 12px; font-family: 'JetBrains Mono', monospace;
+        }
+        .dispatch-inputs input:focus { outline: none; border-color: var(--accent-red); box-shadow: 0 0 15px var(--accent-red-glow); }
+
+        .leaflet-popup-content-wrapper { background: var(--panel-bg); color: #FFF; border-radius: 10px; border: 1px solid var(--card-border); font-family: 'JetBrains Mono', monospace; font-size: 11px; }
+        .leaflet-popup-tip { background: var(--panel-bg); }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-title-box">
+            <div class="logo-icon">📡</div>
+            <div>
+                <h1>RESQMESH DISASTER INCIDENT COMMAND TACTICAL BASE STATION</h1>
+                <div class="subtitle">MacBook Base Station Tethered to USB Gateway Node RQ50EE | Mesh Channel 1</div>
+            </div>
+        </div>
+        <div class="header-actions">
+            <span class="badge" id="usb-status">GATEWAY DISCONNECTED</span>
+            <button class="btn btn-outline" onclick="simulatePacket()">⚡ SIMULATE MESH TRAFFIC</button>
+            <a href="/api/export/csv" class="btn btn-cyan">📥 EXPORT CSV LOGS</a>
+        </div>
+    </header>
+
+    <div class="stats-grid">
+        <div class="stat-card cyan">
+            <div class="stat-label">TOTAL MESH PACKETS</div>
+            <div class="stat-val" id="stat-total">0</div>
+        </div>
+        <div class="stat-card green">
+            <div class="stat-label">ACTIVE FIELD NODES</div>
+            <div class="stat-val" id="stat-nodes" style="color: var(--accent-green);">0</div>
+        </div>
+        <div class="stat-card red">
+            <div class="stat-label">LIFE-SAFETY SOS ALERTS (P1)</div>
+            <div class="stat-val" id="stat-p1" style="color: var(--accent-red);">0</div>
+        </div>
+        <div class="stat-card amber">
+            <div class="stat-label">LAST CONTACT TIMESTAMP</div>
+            <div class="stat-val" id="stat-time" style="font-size: 16px; color: var(--text-light);">--:--:--</div>
+        </div>
+    </div>
+
+    <!-- Active SOS Sender Identifier Panel -->
+    <div class="sos-alert-bar" id="sos-bar">
+        <div>
+            <div class="sos-alert-title">🚨 LIVE LIFE-SAFETY SOS ALERT & VICTIM IDENTIFIER</div>
+            <div class="sos-sender-list" id="sos-sender-container">
+                <div style="color: var(--text-muted); font-family: 'JetBrains Mono', monospace;">No active emergency SOS senders detected. Monitoring 2.4GHz mesh radio channel...</div>
+            </div>
+        </div>
+        <span class="badge-sos">LIVE MONITORING</span>
+    </div>
+
+    <!-- Main Grid: Leaflet Vector Map + Live Telemetry -->
+    <div class="main-grid">
+        <div>
+            <div id="map"></div>
+        </div>
+
+        <!-- Live Telemetry Feed -->
+        <div class="panel">
+            <div class="panel-header">
+                <h2>LIVE MESH PEER MESSAGES, SMS & SOS FEEDS</h2>
+                <span class="badge-cyan">AUTO-REFRESH: 1.5s</span>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>TIME</th>
+                            <th>SRC → DEST</th>
+                            <th>PRIO</th>
+                            <th>HOP ROUTE</th>
+                            <th>MESSAGE PAYLOAD</th>
+                        </tr>
+                    </thead>
+                    <tbody id="feed-body">
+                        <tr><td colspan="5" style="color: var(--text-muted); text-align: center; padding: 20px;">Awaiting incoming radio telemetry...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Node Connection & GPS Coordinates Topology Matrix Panel -->
+    <div class="panel" style="height: 290px; margin-bottom: 16px;">
+        <div class="panel-header">
+            <h2>📡 CONNECTED MESH NODES, GPS COORDINATES & TOPOLOGY MATRIX</h2>
+            <span class="badge" style="border-color: var(--accent-amber); color: var(--accent-amber);">2.4GHz ESP-NOW ACTIVE</span>
+        </div>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>NODE ID</th>
+                        <th>GPS COORDINATES (LAT, LON)</th>
+                        <th>CONNECTED RELAY PARENT</th>
+                        <th>CONNECTION METHOD</th>
+                        <th>RSSI SIGNAL</th>
+                        <th>LAST PAYLOAD / UPDATE</th>
+                    </tr>
+                </thead>
+                <tbody id="nodes-matrix-body">
+                    <tr><td colspan="6" style="color: var(--text-muted); text-align: center; padding: 20px;">Discovering node topology...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Official Command Dispatch Broadcast Box -->
+    <div class="dispatch-box">
+        <h2>📢 BROADCAST OFFICIAL COMMAND DIRECTIVE FROM ROOT GATEWAY RQ50EE</h2>
+
+        <div class="quick-presets">
+            <button class="preset-btn" onclick="setPreset('EVACUATE_FLOOD_ZONE_IMMEDIATELY')">🚨 EVACUATE FLOOD ZONE</button>
+            <button class="preset-btn" onclick="setPreset('GAS_LEAK_SHELTER_IN_PLACE')">☣️ GAS LEAK SHELTER ORDER</button>
+            <button class="preset-btn" onclick="setPreset('MEDICAL_TRIAGE_TEAM_DISPATCHED')">🚑 MEDICAL TRIAGE DISPATCH</button>
+            <button class="preset-btn" onclick="setPreset('ALL_CLEAR_ZONE_SAFE')">🟢 ALL CLEAR DIRECTIVE</button>
+        </div>
+
+        <div class="dispatch-inputs">
+            <input type="text" id="dispatch-target" value="ALL" placeholder="Target Node (ALL or RQ10A1)" style="width: 180px;">
+            <input type="text" id="dispatch-text" placeholder="Enter official command directive (e.g. EVACUATE_ZONE_B_OFFICIAL_DIRECTIVE)..." style="flex-grow: 1;">
+            <button class="btn btn-red" onclick="sendDispatch()">📢 BROADCAST DISPATCH VIA RQ50EE</button>
+        </div>
+    </div>
+
+    <!-- Leaflet Map JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        const map = L.map('map').setView([13.00026, 74.79607], 16);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: 'OpenStreetMap | ResQMesh Tactical System'
+        }).addTo(map);
+
+        const nodeMarkers = {};
+
+        function fetchStatus() {
+            fetch('/api/status')
+                .then(res => res.json())
+                .then(st => {
+                    const badge = document.getElementById('usb-status');
+                    badge.innerText = `GATEWAY (RQ50EE): ${st.port}`;
+                    if (st.port !== 'DISCONNECTED' && st.port !== 'SIMULATED / DEMO MODE') {
+                        badge.style.borderColor = '#05D540';
+                        badge.style.color = '#05D540';
+                    }
+                })
+                .catch(() => {});
+        }
+
+        function fetchSosSenders() {
+            fetch('/api/sos_senders')
+                .then(res => res.json())
+                .then(senders => {
+                    const container = document.getElementById('sos-sender-container');
+                    if (!senders || senders.length === 0) {
+                        container.innerHTML = '<div style="color: var(--text-muted); font-family: \'JetBrains Mono\', monospace;">No active emergency SOS senders detected. Monitoring 2.4GHz mesh radio channel...</div>';
+                        return;
+                    }
+
+                    container.innerHTML = '';
+                    senders.forEach(s => {
+                        const card = document.createElement('div');
+                        card.className = 'sos-sender-card';
+                        const coordsStr = (s.lat !== 0 && s.lon !== 0) ? `(${s.lat.toFixed(5)}, ${s.lon.toFixed(5)})` : 'GPS Searching';
+                        card.innerHTML = `
+                            <span style="color: var(--accent-red); font-weight: 800;">🚨 SENDER: ${s.sender_id}</span> |
+                            <span style="color: #FFF;">"${s.text}"</span> |
+                            <span style="color: var(--accent-green);">${coordsStr}</span> |
+                            <span style="color: var(--text-muted);">${s.timestamp.split(' ')[1] || s.timestamp}</span>
+                        `;
+                        container.appendChild(card);
+                    });
+                })
+                .catch(() => {});
+        }
+
+        function fetchNodes() {
+            fetch('/api/nodes')
+                .then(res => res.json())
+                .then(nodes => {
+                    const tbody = document.getElementById('nodes-matrix-body');
+                    tbody.innerHTML = '';
+
+                    nodes.forEach(n => {
+                        const tr = document.createElement('tr');
+                        const coordsStr = (n.lat !== 0 && n.lon !== 0) ? `${n.lat.toFixed(5)}, ${n.lon.toFixed(5)}` : 'GPS Searching...';
+                        tr.innerHTML = `
+                            <td><b style="color: var(--accent-amber);">${n.node_id}</b></td>
+                            <td style="color: var(--accent-green); font-weight: 700;">${coordsStr}</td>
+                            <td>${n.connected_to}</td>
+                            <td><span style="color: var(--accent-cyan);">${n.conn_type}</span></td>
+                            <td>${n.rssi}</td>
+                            <td>${n.last_payload}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                })
+                .catch(() => {});
+        }
+
+        function fetchFrames() {
+            fetch('/api/frames')
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('stat-total').innerText = data.length;
+
+                    const uniqueNodes = new Set();
+                    let p1Count = 0;
+                    const tbody = document.getElementById('feed-body');
+                    tbody.innerHTML = '';
+
+                    if (data.length > 0) {
+                        const lastTime = data[0].timestamp.split(' ')[1] || data[0].timestamp;
+                        document.getElementById('stat-time').innerText = lastTime;
+                    }
+
+                    data.forEach(f => {
+                        uniqueNodes.add(f.src_id);
+                        if (f.prio === 'P1' || f.mtype === 'ALERT') p1Count++;
+
+                        const tr = document.createElement('tr');
+                        const timeStr = f.timestamp.split(' ')[1] || f.timestamp;
+                        const routeStr = f.route ? `<span class="route-chip">⚡ ${f.route} (${f.hop_count} Hops)</span>` : `<span class="route-chip">${f.src_id}</span>`;
+
+                        tr.innerHTML = `
+                            <td>${timeStr}</td>
+                            <td><b>${f.src_id}</b> → <span style="color: var(--accent-cyan);">${f.dest_id}</span></td>
+                            <td class="prio-${f.prio}">${f.prio}</td>
+                            <td>${routeStr}</td>
+                            <td>${f.text}</td>
+                        `;
+                        tbody.appendChild(tr);
+
+                        if (f.lat !== 0 && f.lon !== 0) {
+                            const key = f.src_id;
+                            const popupText = `<b>Node/Sender: ${f.src_id}</b><br>Dest: ${f.dest_id}<br>Route: ${f.path || f.src_id}<br>Type: ${f.mtype} | Prio: ${f.prio}<br>Payload: ${f.text}<br>Coords: ${f.lat.toFixed(5)}, ${f.lon.toFixed(5)}`;
+
+                            if (nodeMarkers[key]) {
+                                nodeMarkers[key].setLatLng([f.lat, f.lon]);
+                                nodeMarkers[key].getPopup().setContent(popupText);
+                            } else {
+                                const marker = L.marker([f.lat, f.lon]).addTo(map)
+                                    .bindPopup(popupText);
+                                nodeMarkers[key] = marker;
+                            }
+                        }
+                    });
+
+                    document.getElementById('stat-nodes').innerText = uniqueNodes.size;
+                    document.getElementById('stat-p1').innerText = p1Count;
+                })
+                .catch(err => console.error("Error fetching frames:", err));
+        }
+
+        function setPreset(text) {
+            document.getElementById('dispatch-text').value = text;
+        }
+
+        function sendDispatch() {
+            const target = document.getElementById('dispatch-target').value || "ALL";
+            const text = document.getElementById('dispatch-text').value;
+            if (!text) {
+                alert("Please enter a command directive text to broadcast!");
+                return;
+            }
+
+            fetch('/api/dispatch', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    dest_id: target,
+                    text: text,
+                    lat: 13.00026,
+                    lon: 74.79607
+                })
+            })
+            .then(res => res.json())
+            .then(d => {
+                alert("📢 COMMAND DISPATCH BROADCASTED VIA RQ50EE: " + text);
+                document.getElementById('dispatch-text').value = '';
+                fetchFrames();
+            });
+        }
+
+        function simulatePacket() {
+            fetch('/api/simulate', { method: 'POST' })
+                .then(res => res.json())
+                .then(() => fetchFrames());
+        }
+
+        // Initialize polling intervals
+        fetchStatus();
+        fetchSosSenders();
+        fetchNodes();
+        fetchFrames();
+
+        setInterval(fetchStatus, 5000);
+        setInterval(fetchSosSenders, 2000);
+        setInterval(fetchNodes, 3000);
+        setInterval(fetchFrames, 1500);
+    </script>
+</body>
+</html>

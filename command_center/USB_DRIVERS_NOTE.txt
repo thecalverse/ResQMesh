@@ -1,0 +1,17 @@
+======================================================================
+  RESQMESH USB SERIAL DRIVER GUIDE FOR NEW WINDOWS / MAC LAPTOPS
+======================================================================
+
+1. WINDOWS 10 / WINDOWS 11:
+   - Built-in automatic driver support!
+   - Windows 10/11 automatically installs the CH340/CP2102 USB driver as soon as you plug in the ESP32 cable.
+   - You can check in Device Manager -> Ports (COM & LPT) -> USB-SERIAL CH340 or CP210x (COM3 / COM4).
+
+2. IF WINDOWS DOES NOT AUTO-DETECT THE PORT:
+   - CH340 USB Driver Download: https://www.wch-ic.com/downloads/CH341SER_EXE.html
+   - CP2102 USB Driver Download: https://www.silabs.com/developers/usb-to-uart-bridge-vcp-drivers
+
+3. MACOS (MACBOOK):
+   - Native built-in drivers! No installation required on macOS Sonoma, Ventura, Monterey, or Sequoia.
+   - Plug in USB cable and check port name: ls /dev/cu.usbserial* /dev/cu.usbmodem*
+======================================================================
